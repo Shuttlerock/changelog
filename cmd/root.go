@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	log "github.com/sirupsen/logrus"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -25,6 +26,7 @@ const defaultExitCode = 1
 
 func handleError(err error) {
 	if err != nil {
+		log.Fatal(err)
 		os.Exit(defaultExitCode)
 	}
 }
