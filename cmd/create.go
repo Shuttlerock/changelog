@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	command "github.com/shuttlerock/changlog/pkg/cmd"
@@ -9,39 +8,17 @@ import (
 
 const (
 	TemplatesDirFlag = "templates-dir"
+	ReleaseYamlFlag  = "release-yaml-file"
+	GitDirFlag       = "dir"
 )
 
-type Options struct {
-	ReleaseYamlFile string
-	TemplatesDir    string
-}
-
-func (o *Options) toCommandOptions(cmd *cobra.Command) (*command.Options, error) {
-	var templatesDir *string
-	if cmd.Flags().Changed(TemplatesDirFlag) {
-		tDir, err := cmd.Flags().GetString(TemplatesDirFlag)
-		templatesDir = &tDir
-		if err != nil {
-			return nil, errors.Wrapf(err, "unable to read %s", TemplatesDirFlag)
-		}
-	}
-	return &command.Options{
-		ReleaseYamlFile: "",
-		TemplatesDir:    templatesDir,
-	}, nil
-}
-
-func NewCmdChangelogCreate() (*cobra.Command, *Options) {
-	o := &Options{}
+func NewCmdChangelogCreate() (*cobra.Command, *command.Options) {
+	o := &command.Options{}
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Creates a changelog for the release",
 		Run: func(cmd *cobra.Command, args []string) {
-			commandOptions, err := o.toCommandOptions(cmd)
-			if err != nil {
-				handleError(err)
-			}
-			err = commandOptions.Run()
+			err := o.Run()
 			handleError(err)
 		},
 	}
@@ -53,5 +30,7 @@ func init() {
 	rootCmd.AddCommand(createCmd)
 	createCmd.Flags()
 	createCmd.Flags().StringVarP(&options.TemplatesDir, TemplatesDirFlag, "t", "", "the directory containing the helm chart templates to generate the resources")
-	createCmd.Flags().StringVarP(&options.ReleaseYamlFile, "release-yaml-file", "", "release.yaml", "the name of the file to generate the Release YAML")
+	createCmd.Flags().StringVarP(&options.ReleaseYamlFile, ReleaseYamlFlag, "", "release.yaml", "the name of the file to generate the Release YAML")
+	createCmd.Flags().StringVarP(&options.GitDir, GitDirFlag, "", ".", "the directory to search for the .git to discover the git source URL")
+	createCmd.Flags().StringVarP(&options.OutputMarkdownFile, "output-markdown", "", "", "Put the changelog output in this file")
 }
